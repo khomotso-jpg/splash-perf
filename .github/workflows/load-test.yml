@@ -1,0 +1,39 @@
+# On-demand + weekly load test for the Splash site. PUBLIC repo, so GitHub Actions minutes are free.
+# Runs a zero-dependency Python load tester and posts a latency/throughput report to the run summary.
+name: load-test
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Base URL to test
+        default: https://splash-web-chi.vercel.app
+      concurrency:
+        description: Concurrent requests
+        default: '20'
+      total:
+        description: Total requests
+        default: '300'
+  schedule:
+    # Weekly, Monday 06:00 UTC — a light regression check. Keep it infrequent; this is your own site on a
+    # free tier, not a target. Bump manually via "Run workflow" when you want an ad-hoc test.
+    - cron: '0 6 * * 1'
+
+concurrency:
+  group: load-test
+  cancel-in-progress: true
+
+jobs:
+  load-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run load test
+        env:
+          TARGET: ${{ inputs.target || 'https://splash-web-chi.vercel.app' }}
+          CONCURRENCY: ${{ inputs.concurrency || '20' }}
+          TOTAL: ${{ inputs.total || '300' }}
+        run: python load-test.py

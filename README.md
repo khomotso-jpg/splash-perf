@@ -1,4 +1,4 @@
-# splash-perf
+# dinare-perf
 
 Load / performance testing for the Splash site, run from **free** GitHub Actions (this repo is public, so
 Actions minutes are unlimited and unmetered).

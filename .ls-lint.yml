@@ -1,0 +1,21 @@
+# Dinare Edge naming standard — ../dinare-platform/docs/standards/naming-and-structure.md
+# Enforced by ls-lint. Directories kebab-case; sources kebab-case; docs kebab-case.
+#
+# Added 2026-09-06. NOTE: no `.py` rule — the naming standard does not cover Python, and inventing
+# one here would be a rule nobody decided. `dinare-perf/load-test.py` would fail PEP 8 snake_case and
+# cannot be imported as a module with a hyphen; that is a real decision for the standard, not a drive-by. This repo had no config at all, so the pre-commit hook failed open on it —
+# `ls-lint` exited non-zero with "no such file" and the naming gate never actually ran here.
+ls:
+  .dir: kebab-case
+  .ts: kebab-case
+  .md: kebab-case | regex:^[A-Z]+$ | regex:^SKILL$
+  .yaml: kebab-case
+  .yml: kebab-case
+
+ignore:
+  - .git
+  - .claude
+  # GitHub owns this name; the standard's own rule is that a name a tool owns is not one we chose.
+  - .github
+  - node_modules
+  - .venv

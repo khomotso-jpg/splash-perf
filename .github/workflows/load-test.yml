@@ -10,14 +10,14 @@ on:
         default: https://splash-web-chi.vercel.app
       concurrency:
         description: Concurrent requests
-        default: '20'
+        default: "20"
       total:
         description: Total requests
-        default: '300'
+        default: "300"
   schedule:
     # Weekly, Monday 06:00 UTC — a light regression check. Keep it infrequent; this is your own site on a
     # free tier, not a target. Bump manually via "Run workflow" when you want an ad-hoc test.
-    - cron: '0 6 * * 1'
+    - cron: "0 6 * * 1"
 
 concurrency:
   group: load-test
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - name: Run load test
         env:
           TARGET: ${{ inputs.target || 'https://splash-web-chi.vercel.app' }}

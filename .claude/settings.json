@@ -1,0 +1,39 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/../dinare-platform/scripts/hook-session-digest.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/../dinare-platform/scripts/hook-record-invariant.sh",
+            "timeout": 20
+          }
+        ],
+        "matcher": ".*"
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/../dinare-platform/scripts/hook-turnend.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  },
+  "$comment": "Orchestration enforcement (ADR 0167) installed by dinare-platform/scripts/install-orchestration.sh. The model pin above, if present, is governed by principle 03 - do not remove it."
+}

@@ -11,7 +11,17 @@ import urllib.error
 from concurrent.futures import ThreadPoolExecutor
 from collections import Counter
 
-TARGET = os.environ.get("TARGET", "https://splash-web-chi.vercel.app").rstrip("/")
+# **No default, deliberately.** This defaulted to a Vercel URL the owner retired on 2026-09-28. The host
+# went on answering — a stale deployment does — so the weekly run went on reporting SUCCESS against a site
+# nobody was serving. A default target is how that survived: nobody typed it, so nobody re-read it. Name
+# the host or this refuses to run.
+TARGET = os.environ.get("TARGET", "").rstrip("/")
+if not TARGET:
+    raise SystemExit(
+        "TARGET is not set. This tester has no default host on purpose — a default is what let it keep "
+        "load-testing a retired deployment and calling the result a pass. Set TARGET to the host you "
+        "actually want measured, e.g. TARGET=https://<live-host> python3 load-test.py"
+    )
 CONCURRENCY = int(os.environ.get("CONCURRENCY", "20"))
 TOTAL = int(os.environ.get("TOTAL", "300"))
 WARM = os.environ.get("WARM", "1") == "1"

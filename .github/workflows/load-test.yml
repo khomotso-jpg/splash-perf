@@ -1,23 +1,33 @@
-# On-demand + weekly load test for the Splash site. PUBLIC repo, so GitHub Actions minutes are free.
+# On-demand load test for the Splash site. PUBLIC repo, so GitHub Actions minutes are free.
 # Runs a zero-dependency Python load tester and posts a latency/throughput report to the run summary.
+#
+# ## The weekly schedule is gone, and the default target with it
+#
+# This ran every Monday at 06:00 UTC against a Vercel preview host and reported SUCCESS every week.
+# The owner retired Vercel on 2026-09-28. The host kept answering — a stale deployment does — so the run
+# kept passing, and the report it posted was a latency profile of something nobody was serving any more.
+# A green weekly check against a dead host is worse than no check: it is a claim that the site is fast.
+#
+# So there is no schedule. There is also no default URL: `target` is REQUIRED, because a default is how the
+# retired one survived — nobody typed it, so nobody noticed it was wrong. When the site is live on its real
+# host, this is run against that host on purpose, by someone who names it.
+#
+# Re-introducing a schedule is fine once there is a live production URL to point it at, and it must come
+# back with that URL written in, not with a default nobody re-reads.
 name: load-test
 
 on:
   workflow_dispatch:
     inputs:
       target:
-        description: Base URL to test
-        default: https://splash-web-chi.vercel.app
+        description: Base URL to test — required, and must be a host that is actually serving today
+        required: true
       concurrency:
         description: Concurrent requests
         default: "20"
       total:
         description: Total requests
         default: "300"
-  schedule:
-    # Weekly, Monday 06:00 UTC — a light regression check. Keep it infrequent; this is your own site on a
-    # free tier, not a target. Bump manually via "Run workflow" when you want an ad-hoc test.
-    - cron: "0 6 * * 1"
 
 concurrency:
   group: load-test
@@ -31,9 +41,26 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      # **A load test that cannot reach its target must fail, not report zeroes.** The point of the
+      # required input above is that the host is named deliberately; this is the check that it is also
+      # alive, so a typo or a decommissioned host is red here rather than a report full of timeouts.
+      - name: The target answers before we load it
+        env:
+          TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$TARGET")
+          echo "$TARGET answered $code"
+          case "$code" in
+            2*|3*) ;;
+            *) echo "::error::$TARGET answered $code — refusing to load-test a host that is not serving"
+               exit 1 ;;
+          esac
+
       - name: Run load test
         env:
-          TARGET: ${{ inputs.target || 'https://splash-web-chi.vercel.app' }}
+          TARGET: ${{ inputs.target }}
           CONCURRENCY: ${{ inputs.concurrency || '20' }}
           TOTAL: ${{ inputs.total || '300' }}
         run: python load-test.py

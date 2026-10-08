@@ -32,3 +32,19 @@ hours instead of ~288**. Weekly was within tolerance, but nothing tighter should
 
 `dinare-platform/scripts/check-standards.sh dinare-perf` must pass. Commits are Conventional Commits. Work
 on `main`; **a push is the owner's call.**
+
+## Orchestration (ADR 0167)
+
+Work in this repo is dispatched against a **durable task record** - a brief, an append-only status
+log and metadata - because a subagent dies with the conversation that spawned it and its record does
+not. A `PreToolUse` hook refuses any dispatch that has no record, so this is not optional.
+
+The protocol is `dinare-platform/.claude/CAPTAIN.md`. Reach the ledger from anywhere in this repo
+with the shim, which resolves the platform scripts whatever directory you are standing in:
+
+```sh
+D="$(git rev-parse --show-toplevel)"/.claude/dinare
+"$D" orchestrate digest                 # what is running, what waits on the owner
+"$D" orchestrate status <id> working "..."
+"$D" check-standards dinare-perf
+```
